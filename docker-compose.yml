@@ -1,0 +1,79 @@
+version: '3.9'
+
+services:
+  consul:
+    image: hashicorp/consul:latest
+    container_name: consul
+    command: agent -server -bootstrap -ui -client=0.0.0.0 -config-dir=/consul/config
+    ports:
+      - "8500:8500"
+      - "8600:8600/udp"
+    volumes:
+      - ./consul/config:/consul/config
+
+  service-a:
+    build: ./service-a
+    container_name: service-a
+    environment:
+      - SERVICE_NAME=service-a
+      - SERVICE_PORT=5001
+    ports:
+      - "5001:5001"
+    depends_on:
+      - consul
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:5001/health').read()\""]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  service-b:
+    build: ./service-b
+    container_name: service-b
+    environment:
+      - SERVICE_NAME=service-b
+      - SERVICE_PORT=5002
+    ports:
+      - "5002:5002"
+    depends_on:
+      - consul
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:5002/health').read()\""]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  service-c:
+    build: ./service-c
+    container_name: service-c
+    environment:
+      - SERVICE_NAME=service-c
+      - SERVICE_PORT=5003
+    ports:
+      - "5003:5003"
+    depends_on:
+      - consul
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:5003/health').read()\""]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  gateway:
+    build: ./gateway
+    container_name: gateway
+    ports:
+      - "5000:5000"
+    environment:
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
+    depends_on:
+      - consul
+      - service-a
+      - service-b
+      - service-c
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/health').read()\""]
+      interval: 10s
+      timeout: 5s
+      retries: 3
