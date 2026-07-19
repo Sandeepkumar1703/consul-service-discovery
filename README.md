@@ -400,6 +400,11 @@ Possible enhancements:
 - Add monitoring using Prometheus and Grafana
 
 ---
+## Project Page
+
+This project was built as part of the roadmap.sh DevOps projects:
+
+https://roadmap.sh/projects/service-discovery
 
 # Author
 
