@@ -1,11 +1,24 @@
 # Consul Service Discovery Demo
 
-GitHub Repository:
+A DevOps portfolio project demonstrating **Service Discovery using HashiCorp Consul**, **Docker Compose**, **Python Flask Microservices**, and an **API Gateway**.
+
+## Project Page
+
+This project was built as part of the roadmap.sh DevOps Projects:
+
+https://roadmap.sh/projects/service-discovery
+
+## GitHub Repository
+
 https://github.com/Sandeepkumar1703/consul-service-discovery
 
-A DevOps portfolio project demonstrating **service discovery using HashiCorp Consul**, **Docker Compose orchestration**, and a **Python Flask API Gateway**.
+---
 
-The goal of this project is to understand how microservices register themselves with Consul, how services are discovered dynamically, and how an API Gateway routes requests to healthy service instances.
+# Overview
+
+This project demonstrates how service discovery works in a microservices architecture.
+
+Three independent Flask microservices register themselves with **HashiCorp Consul** when they start. An API Gateway dynamically discovers healthy service instances from Consul and forwards client requests without using hardcoded IP addresses.
 
 ---
 
@@ -13,42 +26,58 @@ The goal of this project is to understand how microservices register themselves 
 
 ```
                          Client
-                           |
-                           |
-                           v
-                    API Gateway
-                    Port: 5000
-                           |
-                           |
-                           v
-                 Consul Service Discovery
-                    Port: 8500
-                           |
-        -------------------------------------
-        |                 |                 |
-        v                 v                 v
+                            |
+                            |
+                            v
+                     API Gateway
+                       Port:5000
+                            |
+                            |
+                            v
+                  Consul Service Registry
+                       Port:8500
+                            |
+      ------------------------------------------------
+      |                     |                        |
+      |                     |                        |
+      v                     v                        v
 
-   Service A          Service B          Service C
-   Port: 5001         Port: 5002         Port: 5003
+ Service A             Service B               Service C
+ Port:5001             Port:5002               Port:5003
 ```
 
-Each microservice registers itself with Consul during startup.
+Workflow:
 
-The API Gateway queries Consul to discover available services and forwards incoming requests to healthy service instances.
+1. Services start.
+2. Each service registers itself with Consul.
+3. Consul performs periodic health checks.
+4. API Gateway queries Consul for healthy instances.
+5. Gateway forwards requests to the appropriate service.
+
+---
+
+# Features
+
+- Service Discovery using HashiCorp Consul
+- Automatic service registration
+- Health checks for every service
+- Dynamic service lookup
+- API Gateway pattern
+- Docker Compose orchestration
+- Python Flask microservices
+- Container networking
 
 ---
 
 # Tech Stack
 
 - Python 3.12
-- Flask REST API
+- Flask
 - HashiCorp Consul
 - Docker
 - Docker Compose
-- REST APIs
-- Service Discovery Pattern
-- API Gateway Pattern
-- Container Networking
+- REST API
+- python-consul
 
 ---
 
@@ -88,9 +117,9 @@ consul-service-discovery/
 
 # Prerequisites
 
-Before running the project, install:
+Install the following before running the project.
 
-- Docker
+- Docker Desktop
 - Docker Compose
 - Git
 
@@ -98,40 +127,34 @@ Verify installation:
 
 ```bash
 docker --version
-
 docker compose version
+git --version
 ```
 
 ---
 
-# Running the Project
-
-## Clone Repository
+# Clone the Repository
 
 ```bash
 git clone https://github.com/Sandeepkumar1703/consul-service-discovery.git
-```
 
-Navigate to project directory:
-
-```bash
 cd consul-service-discovery
 ```
 
 ---
 
-## Start Application
+# Run the Project
 
-Build and start all containers:
+Build and start all services:
 
 ```bash
 docker compose up --build
 ```
 
-This will start:
+The following containers will start:
 
 | Component | Port |
-|---|---|
+|-----------|------|
 | Consul | 8500 |
 | API Gateway | 5000 |
 | Service A | 5001 |
@@ -142,38 +165,28 @@ This will start:
 
 # Consul Dashboard
 
-Open the Consul UI:
+Open:
 
 ```
 http://localhost:8500
 ```
 
-You should see registered services:
+You should see:
 
-```
-service-a
-service-b
-service-c
-```
+- service-a
+- service-b
+- service-c
 
-Consul continuously monitors the health of these services.
+All services should appear healthy.
 
 ---
 
 # API Endpoints
 
-## Gateway Health Check
+## Gateway Health
 
 ```
 GET http://localhost:5000/health
-```
-
-Example:
-
-```json
-{
-  "status": "healthy"
-}
 ```
 
 ---
@@ -202,7 +215,7 @@ GET http://localhost:5000/service-c
 
 ---
 
-## List Available Services
+## List Registered Services
 
 ```
 GET http://localhost:5000/services
@@ -223,71 +236,65 @@ GET http://localhost:5000/services
 
 # How Service Registration Works
 
-When a microservice starts:
+Each Flask microservice automatically registers itself with Consul when it starts.
 
-1. The service connects to Consul.
-2. The service registers its name and port.
-3. A health check endpoint is registered.
-4. Consul stores the service information.
-5. Consul continuously checks service availability.
+The registration includes:
 
-Example flow:
+- Service name
+- Service address
+- Port
+- Health check endpoint
 
-```
-Service A
-    |
-    |
-    | Register Service
-    |
-    v
-Consul Service Registry
-```
-
-After registration, Consul maintains information like:
+Registration Flow
 
 ```
-Service Name     Port
-
-service-a        5001
-service-b        5002
-service-c        5003
+Service Startup
+      |
+      |
+      v
+Register with Consul
+      |
+      |
+      v
+Consul Registry
+      |
+      |
+Health Monitoring
 ```
 
 ---
 
-# How API Gateway Uses Service Discovery
+# How the API Gateway Works
 
-The API Gateway does not store fixed IP addresses.
+The API Gateway never stores service IP addresses.
 
-Instead, it discovers services dynamically through Consul.
+Instead, it queries Consul to discover healthy service instances.
 
-Request flow:
+Request Flow
 
 ```
 Client
-  |
-  |
-  v
+   |
+   |
+   v
 API Gateway
-  |
-  |
-  | Ask Consul:
-  | "Where is service-a?"
-  |
-  v
+   |
+   | Query Consul
+   |
+   v
 Consul
-  |
-  |
-  | Returns healthy instance
-  |
-  v
-Service A
-  |
-  |
+   |
+   | Return healthy instance
+   |
+   v
+Requested Service
+   |
+   |
+   v
 Response
 ```
 
-This allows services to scale or move without changing gateway configuration.
+This enables services to move, restart, or scale without changing the gateway configuration.
 
 ---
 
@@ -299,71 +306,73 @@ Each service exposes:
 GET /health
 ```
 
-Example:
+Consul periodically checks this endpoint.
 
-```
-Consul
-   |
-   |---- Check Service A
-   |
-   |---- Check Service B
-   |
-   |---- Check Service C
-```
-
-If a service becomes unavailable, Consul marks it unhealthy and prevents routing traffic to it.
+If a service becomes unhealthy, Consul automatically removes it from the list of healthy instances used by the gateway.
 
 ---
 
-# Testing With Curl
+# Testing Using cURL
 
-Gateway health:
+Gateway Health
 
 ```bash
 curl http://localhost:5000/health
 ```
 
-Service A:
+Service A
 
 ```bash
 curl http://localhost:5000/service-a
 ```
 
-Service B:
+Service B
 
 ```bash
 curl http://localhost:5000/service-b
 ```
 
-Service C:
+Service C
 
 ```bash
 curl http://localhost:5000/service-c
+```
+
+Registered Services
+
+```bash
+curl http://localhost:5000/services
 ```
 
 ---
 
 # Docker Commands
 
-## View Running Containers
+Start containers
+
+```bash
+docker compose up --build
+```
+
+View running containers
 
 ```bash
 docker ps
 ```
 
-## View Logs
+View logs
 
 ```bash
 docker compose logs
 ```
 
-## Stop Application
+Stop containers
 
 ```bash
 docker compose down
 ```
 
-## Rebuild Application
+Rebuild
 
 ```bash
 docker compose up --build
@@ -373,42 +382,32 @@ docker compose up --build
 
 # Key Concepts Demonstrated
 
-This project demonstrates:
-
-- Microservices architecture
-- Service registration
-- Service discovery
-- Consul service registry
-- Health monitoring
-- API Gateway pattern
-- Docker containerization
-- Docker Compose orchestration
-- Container networking
-- Dynamic service communication
+- Microservices Architecture
+- Service Discovery
+- Service Registration
+- HashiCorp Consul
+- Health Checks
+- API Gateway Pattern
+- Docker Networking
+- Container Orchestration
+- REST APIs
 
 ---
 
 # Future Improvements
 
-Possible enhancements:
-
-- Add authentication using JWT
-- Add load balancing between multiple service instances
-- Deploy using Kubernetes
-- Use Kubernetes Service Discovery
-- Add CI/CD pipeline with GitHub Actions
-- Add monitoring using Prometheus and Grafana
+- Load balancing across multiple instances
+- JWT authentication
+- Kubernetes deployment
+- Kubernetes service discovery
+- GitHub Actions CI/CD
+- Prometheus monitoring
+- Grafana dashboards
 
 ---
-## Project Page
-
-This project was built as part of the roadmap.sh DevOps projects:
-
-https://roadmap.sh/projects/service-discovery
 
 # Author
 
 **Sandeep Kumar Prasad**
 
-GitHub:
-https://github.com/Sandeepkumar1703
+GitHub: https://github.com/Sandeepkumar1703
